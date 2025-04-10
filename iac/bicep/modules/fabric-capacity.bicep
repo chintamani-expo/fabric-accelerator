@@ -31,7 +31,7 @@ param sme_tag string
 param skuName string = 'F2'
 
 @description('The SKU tier of the Fabric Capacity instance.')
-param skuTier string = 'Fabric'
+param skuTier string = 'fabricf2'
 
 @description('The list of administrators for the Fabric Capacity instance.')
 @secure()

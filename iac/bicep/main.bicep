@@ -3,19 +3,19 @@ targetScope = 'subscription'
 
 // Parameters
 @description('Resource group where Microsoft Fabric capacity will be deployed. Resource group will be created if it doesnt exist')
-param dprg string= 'rg-fabric'
+param dprg string= 'Fabric'
 
 @description('Microsoft Fabric Resource group location')
-param rglocation string = 'australiaeast'
+param rglocation string = 'centralindia'
 
 @description('Cost Centre tag that will be applied to all resources in this deployment')
-param cost_centre_tag string = 'MCAPS'
+param cost_centre_tag string = 'Cost Centre'
 
 @description('System Owner tag that will be applied to all resources in this deployment')
-param owner_tag string = 'whirlpool@contoso.com'
+param owner_tag string = 'AdminTeam'
 
 @description('Subject Matter EXpert (SME) tag that will be applied to all resources in this deployment')
-param sme_tag string ='sombrero@contoso.com'
+param sme_tag string ='SME'
 
 @description('Timestamp that will be appendedto the deployment name')
 param deployment_suffix string = utcNow()
@@ -24,7 +24,7 @@ param deployment_suffix string = utcNow()
 param create_purview bool = false
 
 @description('Flag to indicate whether to enable integration of data platform resources with either an existing or new Purview resource')
-param enable_purview bool = true
+param enable_purview bool = false
 
 @description('Resource group where Purview will be deployed. Resource group will be created if it doesnt exist')
 param purviewrg string= 'rg-datagovernance'
@@ -39,7 +39,7 @@ param purview_name string = 'ContosoDG' // Replace with a Globally unique name
 param enable_audit bool = true
 
 @description('Resource group where audit resources will be deployed if enabled. Resource group will be created if it doesnt exist')
-param auditrg string= 'rg-audit'
+param auditrg string= 'fabric-logs'
 
 
 // Variables
@@ -50,7 +50,7 @@ var audit_deployment_name = 'audit_deployment_${deployment_suffix}'
 var controldb_deployment_name = 'controldb_deployment_${deployment_suffix}'
 
 // Create data platform resource group
-resource fabric_rg  'Microsoft.Resources/resourceGroups@2024-03-01' = {
+resource fabric_rg  'Microsoft.Resources/resourceGroups@2020-06-01' = {
  name: dprg 
  location: rglocation
  tags: {
@@ -62,7 +62,7 @@ resource fabric_rg  'Microsoft.Resources/resourceGroups@2024-03-01' = {
 
 
 // Create purview resource group
-resource purview_rg  'Microsoft.Resources/resourceGroups@2024-03-01' = if (create_purview) {
+resource purview_rg  'Microsoft.Resources/resourceGroups@2020-06-01' = if (create_purview) {
   name: purviewrg 
   location: purview_location
   tags: {
@@ -73,7 +73,7 @@ resource purview_rg  'Microsoft.Resources/resourceGroups@2024-03-01' = if (creat
  }
 
  // Create audit resource group
-resource audit_rg  'Microsoft.Resources/resourceGroups@2024-03-01' = if(enable_audit) {
+resource audit_rg  'Microsoft.Resources/resourceGroups@2020-06-01' = if(enable_audit) {
   name: auditrg 
   location: rglocation
   tags: {
@@ -116,7 +116,7 @@ module kv './modules/keyvault.bicep' = {
   }
 }
 
-resource kv_ref 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+resource kv_ref 'Microsoft.KeyVault/vaults@2016-10-01' existing = {
   name: kv.outputs.keyvault_name
   scope: fabric_rg
 }
@@ -137,38 +137,50 @@ module audit_integration './modules/audit.bicep' = if(enable_audit) {
 }
 
 //Deploy Microsoft Fabric Capacity
-module fabric_capacity './modules/fabric-capacity.bicep' = {
-  name: fabric_deployment_name
-  scope: fabric_rg
-  params:{
-    fabric_name: 'bafabric01'
-    location: fabric_rg.location
-    cost_centre_tag: cost_centre_tag
-    owner_tag: owner_tag
-    sme_tag: sme_tag
-    adminUsers: kv_ref.getSecret('fabric-capacity-admin-username')
-    skuName: 'F4' // Default Fabric Capacity SKU F2
-  }
+// module fabric_capacity './modules/fabric-capacity.bicep' = {
+  // name: fabric_deployment_name
+  // scope: fabric_rg
+  // params:{
+    // fabric_name: 'bafabric01'
+    // location: fabric_rg.location
+    // cost_centre_tag: cost_centre_tag
+    // owner_tag: owner_tag
+    // sme_tag: sme_tag
+    // adminUsers: kv_ref.getSecret('fabric-capacity-admin-username')
+    // skuName: 'F4' // Default Fabric Capacity SKU F2
+  // }
 }
 
+// Reference existing Microsoft Fabric Capacity
+resource existingFabricCapacity 'Microsoft.Fabric/capacities@2023-11-01' existing = {
+  name: 'fabricf2' // Use the name of your existing capacity
+  scope: resourceGroup('Fabric') // Ensure the scope is set to the correct resource group
+}
+
+// Use the existing capacity in your deployment
+output existingCapacityId string = existingFabricCapacity.id
+output existingCapacityName string = existingFabricCapacity.name
+
 //Deploy SQL control DB 
-module controldb './modules/sqldb.bicep' = {
+module sql_control_db './modules/sqldb.bicep' = {
   name: controldb_deployment_name
   scope: fabric_rg
   params:{
-     sqlserver_name: 'ba-sql01'
-     database_name: 'controlDB' 
+     sqlserver_name: 'fabric-database'
+     database_name: 'Fabric' 
      location: fabric_rg.location
      cost_centre_tag: cost_centre_tag
      owner_tag: owner_tag
      sme_tag: sme_tag
-     ad_admin_username:  kv_ref.getSecret('sqlserver-ad-admin-username')
-     ad_admin_sid:  kv_ref.getSecret('sqlserver-ad-admin-sid')  
+//     ad_admin_username:  kv_ref.getSecret('sqlserver-ad-admin-username')
+//     ad_admin_sid:  kv_ref.getSecret('sqlserver-ad-admin-sid')  
      auto_pause_duration: 60
+         ad_admin_username: 'powerbipro@exponentia.ai'
+    ad_admin_sid: 'a2ee70c0-b5d8-4496-b6ed-2fc0b824155e'
      database_sku_name: 'GP_S_Gen5_1' 
      enable_purview: enable_purview
      purview_resource: enable_purview ? purview.outputs.purview_resource : {}
-     enable_audit: false
+     enable_audit: true
      audit_storage_name: enable_audit?audit_integration.outputs.audit_storage_uniquename:''
      auditrg: enable_audit?audit_rg.name:''
   }

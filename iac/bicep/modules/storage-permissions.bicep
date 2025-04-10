@@ -1,8 +1,8 @@
 @description('Resource name storage account to which permissions are to be granted')
-param storage_name string
+param storage_name string = 'fabricgen2datalake'
 
 @description('Resource group of storage account')
-param storage_rg string
+param storage_rg string = 'Fabric'
 
 @description('Managed Identity of the resource being granted permissions')
 param principalId string
@@ -14,7 +14,7 @@ param grant_reader bool = true
 param grant_contributor bool = true
 
 //Get Reference to storage account
-resource storage_account 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+resource storage_account 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
   name: storage_name
   scope: resourceGroup(storage_rg)
 }
@@ -29,7 +29,7 @@ resource sbdcRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-
 @description('This is the built-in Storage Blob Reader role. See https://docs.microsoft.com/azure/role-based-access-control/built-in-roles#contributor')
 resource sbdrRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
   scope: subscription()
-  name: 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+  name: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
 }
 
 //Grant Storage Blob Data Contributor role to resource

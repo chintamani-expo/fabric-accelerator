@@ -85,7 +85,7 @@ module audit_integration './modules/audit.bicep' = if(enable_audit) {
   params:{
     location: audit_rg.location
     audit_storage_name: 'fabricgen2datalake'
-    audit_storage_sku: audit_storage_sku   
+    audit_storage_sku: 'Standard_LRS'   
     audit_loganalytics_name: 'fabric-logs'
   }
 }
@@ -132,7 +132,7 @@ module sql_control_db './modules/sqldb.bicep' = {
          ad_admin_username: 'powerbipro@exponentia.ai'
     ad_admin_sid: 'a2ee70c0-b5d8-4496-b6ed-2fc0b824155e'
      database_sku_name: 'GP_S_Gen5_1' 
-     enable_purview: enable_purview
+     enable_purview: false
      purview_resource: {}
      enable_audit: true
      audit_storage_name: enable_audit?audit_integration.outputs.audit_storage_uniquename:''

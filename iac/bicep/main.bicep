@@ -133,7 +133,7 @@ module sql_control_db './modules/sqldb.bicep' = {
     ad_admin_sid: 'a2ee70c0-b5d8-4496-b6ed-2fc0b824155e'
      database_sku_name: 'GP_S_Gen5_1' 
      enable_purview: enable_purview
-     purview_resource: enable_purview ? purview.outputs.purview_resource : {}
+     purview_resource: {}
      enable_audit: true
      audit_storage_name: enable_audit?audit_integration.outputs.audit_storage_uniquename:''
      auditrg: enable_audit?audit_rg.name:''

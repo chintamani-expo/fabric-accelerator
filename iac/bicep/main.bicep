@@ -20,20 +20,6 @@ param sme_tag string ='SME'
 @description('Timestamp that will be appendedto the deployment name')
 param deployment_suffix string = utcNow()
 
-@description('Flag to indicate whether to create a new Purview resource with this data platform deployment')
-param create_purview bool = false
-
-@description('Flag to indicate whether to enable integration of data platform resources with either an existing or new Purview resource')
-param enable_purview bool = false
-
-@description('Resource group where Purview will be deployed. Resource group will be created if it doesnt exist')
-param purviewrg string= 'rg-datagovernance'
-
-@description('Location of Purview resource. This may not be same as the Fabric resource group location')
-param purview_location string= 'westus2'
-
-@description('Resource Name of new or existing Purview Account. Must be globally unique. Specify a resource name if either create_purview=true or enable_purview=true')
-param purview_name string = 'ContosoDG' // Replace with a Globally unique name
 
 @description('Flag to indicate whether auditing of data platform resources should be enabled')
 param enable_audit bool = true
@@ -44,7 +30,6 @@ param auditrg string= 'fabric-logs'
 
 // Variables
 var fabric_deployment_name = 'fabric_dataplatform_deployment_${deployment_suffix}'
-var purview_deployment_name = 'purview_deployment_${deployment_suffix}'
 var keyvault_deployment_name = 'keyvault_deployment_${deployment_suffix}'
 var audit_deployment_name = 'audit_deployment_${deployment_suffix}'
 var controldb_deployment_name = 'controldb_deployment_${deployment_suffix}'
@@ -61,16 +46,6 @@ resource fabric_rg  'Microsoft.Resources/resourceGroups@2020-06-01' = {
 }
 
 
-// Create purview resource group
-resource purview_rg  'Microsoft.Resources/resourceGroups@2020-06-01' = if (create_purview) {
-  name: purviewrg 
-  location: purview_location
-  tags: {
-         CostCentre: cost_centre_tag
-         Owner: owner_tag
-         SME: sme_tag
-   }
- }
 
  // Create audit resource group
 resource audit_rg  'Microsoft.Resources/resourceGroups@2020-06-01' = if(enable_audit) {
@@ -83,22 +58,7 @@ resource audit_rg  'Microsoft.Resources/resourceGroups@2020-06-01' = if(enable_a
    }
  }
 
-// Deploy Purview using module
-module purview './modules/purview.bicep' = if (create_purview || enable_purview) {
-  name: purview_deployment_name
-  scope: purview_rg
-  params:{
-    create_purview: create_purview
-    enable_purview: enable_purview
-    purviewrg: purviewrg
-    purview_name: purview_name
-    location: purview_location
-    cost_centre_tag: cost_centre_tag
-    owner_tag: owner_tag
-    sme_tag: sme_tag
-  }
-  
-}
+
 
 // Deploy Key Vault with default access policies using module
 module kv './modules/keyvault.bicep' = {
@@ -106,13 +66,10 @@ module kv './modules/keyvault.bicep' = {
   scope: fabric_rg
   params:{
      location: fabric_rg.location
-     keyvault_name: 'ba-kv01'
+     keyvault_name: 'fabric-keyuser'
      cost_centre_tag: cost_centre_tag
      owner_tag: owner_tag
      sme_tag: sme_tag
-     purview_account_name: enable_purview ? purview.outputs.purview_account_name : ''
-     purviewrg: enable_purview ? purviewrg : ''
-     enable_purview: enable_purview
   }
 }
 
@@ -127,12 +84,9 @@ module audit_integration './modules/audit.bicep' = if(enable_audit) {
   scope: audit_rg
   params:{
     location: audit_rg.location
-    cost_centre_tag: cost_centre_tag
-    owner_tag: owner_tag
-    sme_tag: sme_tag
-    audit_storage_name: 'baauditstorage01'
-    audit_storage_sku: 'Standard_LRS'    
-    audit_loganalytics_name: 'ba-loganalytics01'
+    audit_storage_name: 'fabricgen2datalake'
+    audit_storage_sku: audit_storage_sku   
+    audit_loganalytics_name: 'fabric-logs'
   }
 }
 
@@ -184,10 +138,4 @@ module sql_control_db './modules/sqldb.bicep' = {
      audit_storage_name: enable_audit?audit_integration.outputs.audit_storage_uniquename:''
      auditrg: enable_audit?audit_rg.name:''
   }
-}
-
-
-"rules": {
-    "no-unused-vars": "warn", 
-    "@typescript/no-unused-vars": "warn"  // also add this if you're using typescript
 }

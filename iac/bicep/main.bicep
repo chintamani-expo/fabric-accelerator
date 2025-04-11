@@ -29,7 +29,7 @@ param auditrg string= 'fabric-logs'
 
 
 // Variables
-var fabric_deployment_name = 'fabric_dataplatform_deployment_${deployment_suffix}'
+// var fabric_deployment_name = 'fabric_dataplatform_deployment_${deployment_suffix}'
 var keyvault_deployment_name = 'keyvault_deployment_${deployment_suffix}'
 var audit_deployment_name = 'audit_deployment_${deployment_suffix}'
 var controldb_deployment_name = 'controldb_deployment_${deployment_suffix}'
@@ -73,10 +73,10 @@ module kv './modules/keyvault.bicep' = {
   }
 }
 
-resource kv_ref 'Microsoft.KeyVault/vaults@2016-10-01' existing = {
-  name: kv.outputs.keyvault_name
-  scope: fabric_rg
-}
+//resource kv_ref 'Microsoft.KeyVault/vaults@2016-10-01' existing = {
+  //name: kv.outputs.keyvault_name
+  //scope: fabric_rg
+//}
 
 //Enable auditing for data platform resources
 module audit_integration './modules/audit.bicep' = if(enable_audit) {

@@ -13,7 +13,7 @@ param grant_reader bool = true
 @description('Flag to grant Storage Blob Data Contributor role to the storage account')
 param grant_contributor bool = true
 
-Get Reference to storage account
+// Get Reference to storage account
 resource storage_account 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
   name: 'storage_name'
   scope: resourceGroup(storage_rg)

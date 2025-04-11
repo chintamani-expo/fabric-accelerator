@@ -103,7 +103,7 @@ module audit_integration './modules/audit.bicep' = if(enable_audit) {
     // adminUsers: kv_ref.getSecret('fabric-capacity-admin-username')
     // skuName: 'F4' // Default Fabric Capacity SKU F2
   // }
-}
+// }
 
 // Reference existing Microsoft Fabric Capacity
 resource existingFabricCapacity 'Microsoft.Fabric/capacities@2023-11-01' existing = {

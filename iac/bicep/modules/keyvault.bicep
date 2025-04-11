@@ -13,7 +13,7 @@ param owner_tag string
 param sme_tag string
 
 @description('Key Vault name')
-param keyvault_name string = 'fabric-keyuser
+param keyvault_name string = 'fabric-keyuser'
 
 // @description('Purview Account name')
 // param purview_account_name string

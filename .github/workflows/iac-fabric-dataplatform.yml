@@ -16,7 +16,7 @@ jobs:
     #Log into Azure
     - uses: azure/login@v1
       with:
-           creds: '{"clientId":"${{ secrets.ACTION_SPN_CLIENTID }}","clientSecret":"${{ secrets.ACTION_SPN_SECRET }}","subscriptionId":"${{ secrets.SUBSCRIPTION_ID }}","tenantId":"${{ secrets.TENANT_ID }}"}'
+           creds: '{"clientId":"8d9aea47-f467-4f80-9415-060fb5d980f9","clientSecret":"s~c8Q~kWRdPF-.g9._14vpIPuJBEh2pQ8mYElath","subscriptionId":"224a3c65-8eb9-4654-8ba7-ea005536e634","tenantId":"fb33e7e1-6a98-4d5a-bd25-f47acf95078a"}'
 
     # Deploy Bicep file
     - name: deploy
@@ -24,7 +24,7 @@ jobs:
       with:
         scope: subscription
         region: australiaeast
-        subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
+        subscriptionId: 224a3c65-8eb9-4654-8ba7-ea005536e634
         template: iac/bicep/main.bicep
         # parameters: 'k1=v1 k2=v2 k3=v3'
         failOnStdErr: false
